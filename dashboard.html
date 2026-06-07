@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления - Event Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Event Attendance System</span>
+            <span class="text-white">PostgreSQL Edition</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Панель управления</h2>
+
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-success stat-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Всего событий</h5>
+                        <h2>{{ total_events }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info stat-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Активные</h5>
+                        <h2>{{ active_events }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning stat-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Участников</h5>
+                        <h2>{{ total_participants }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger stat-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Посещений</h5>
+                        <h2>{{ total_attendances }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-8">
+                <h3>Последние события</h3>
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Дата</th>
+                            <th>Время</th>
+                            <th>Локация</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in recent_events %}
+                        <tr>
+                            <td>{{ event.id }}</td>
+                            <td><strong>{{ event.title }}</strong></td>
+                            <td>{{ event.event_date.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ event.start_time.strftime('%H:%M') if event.start_time else '-' }}</td>
+                            <td>{{ event.location or '-' }}</td>
+                            <td>
+                                {% if event.is_active %}
+                                <span class="badge bg-success">Активно</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Завершено</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-md-4">
+                <h3>Быстрые действия</h3>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-lg" onclick="showCreateEvent()">
+                        Создать событие
+                    </button>
+                    <button class="btn btn-primary btn-lg" onclick="showRegisterParticipant()">
+                        Добавить участника
+                    </button>
+                    <button class="btn btn-info btn-lg" onclick="loadEvents()">
+                        Список событий (API)
+                    </button>
+                </div>
+
+                <div class="mt-4 alert alert-info">
+                    <h6>Telegram Бот</h6>
+                    <p class="mb-0">Для сканирования QR-кодов используйте команду <code>/start</code> в боте</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showCreateEvent() {
+            alert('Форма создания события\n\nИспользуйте POST /api/events/create');
+        }
+
+        function showRegisterParticipant() {
+            alert('Форма регистрации участника\n\nИспользуйте POST /api/participants/register');
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const events = await response.json();
+                console.log('События:', events);
+                alert(`Загружено ${events.length} событий. Смотрите консоль (F12)`);
+            } catch (error) {
+                alert('Ошибка загрузки: ' + error);
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
